@@ -3,7 +3,6 @@ package com.mscourse.hrpayroll.services;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -20,21 +19,17 @@ public class PaymentService {
 	private WorkerFeignClient workerFeignClient;
 
 	public Payment getPayment(Long workerId, Integer days) {
-		
+
 		try {
 
-		ResponseEntity<Worker> workerResponse = workerFeignClient.findById(workerId);
+			ResponseEntity<Worker> workerResponse = workerFeignClient.findById(workerId);
 
-		if (workerResponse.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
-			return new Payment();
-		}
+			Worker worker = Optional.ofNullable(workerResponse.getBody()).orElse(new Worker());
 
-		Worker worker = Optional.ofNullable(workerResponse.getBody()).orElse(new Worker());
+			return new Payment(worker.getName(), worker.getDailyIncome(), days);
 
-		return new Payment(worker.getName(), worker.getDailyIncome(), days);
-		
 		} catch (FeignException e) {
-			return new Payment(); 
+			return new Payment();
 		}
 	}
 
