@@ -1,36 +1,41 @@
 package com.mscourse.hrpayroll.services;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import com.mscourse.hrpayroll.entities.Payment;
 import com.mscourse.hrpayroll.entities.Worker;
+import com.mscourse.hrpayroll.feignclients.WorkerFeignClient;
+
+import feign.FeignException;
 
 @Service
 public class PaymentService {
 
-	@Value("${hr-worker.host}")
-	private String workerHost;
-
 	@Autowired
-	private RestTemplate restTemplate;
+	private WorkerFeignClient workerFeignClient;
 
 	public Payment getPayment(Long workerId, Integer days) {
+		
+		try {
 
-		Map<String, String> uriVariables = new HashMap<>();
-		uriVariables.put("id", workerId.toString());
+		ResponseEntity<Worker> workerResponse = workerFeignClient.findById(workerId);
 
-		Worker worker = Optional
-				.ofNullable(restTemplate.getForObject(workerHost + "/workers/{id}", Worker.class, uriVariables))
-				.orElse(new Worker());
+		if (workerResponse.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
+			return new Payment();
+		}
+
+		Worker worker = Optional.ofNullable(workerResponse.getBody()).orElse(new Worker());
 
 		return new Payment(worker.getName(), worker.getDailyIncome(), days);
+		
+		} catch (FeignException e) {
+			return new Payment(); 
+		}
 	}
 
 }

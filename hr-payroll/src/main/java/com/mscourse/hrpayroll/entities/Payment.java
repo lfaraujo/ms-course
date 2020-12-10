@@ -18,7 +18,7 @@ public class Payment implements Serializable {
 
 	private String name;
 
-	private Double dailyIncome;
+	private double dailyIncome;
 
 	private Integer days;
 

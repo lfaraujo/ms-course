@@ -1,5 +1,6 @@
 package com.mscourse.hrpayroll.resources;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,7 +20,14 @@ public class PaymentResource {
 
 	@GetMapping(value = "/{workerId}/days/{days}")
 	public ResponseEntity<Payment> getPayment(@PathVariable Long workerId, @PathVariable Integer days) {
-		return ResponseEntity.ok(service.getPayment(workerId, days));
+
+		Payment payment = service.getPayment(workerId, days);
+
+		if (StringUtils.isNotBlank(payment.getName())) {
+			return ResponseEntity.ok(payment);
+		}
+
+		return ResponseEntity.notFound().build();
 	}
 
 }
